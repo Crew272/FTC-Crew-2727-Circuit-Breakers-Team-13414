@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
+import com.qualcomm.robotcore.hardware.I2cAddr;
 
 public class RobotHardware {
     // Drivetrain Motors (Mecanum Wheels)
@@ -23,11 +25,10 @@ public class RobotHardware {
     // Grabber 2 Components
     public Servo slideLeftServo;
     public Servo slideRightServo;
-    public Servo claw2RotationServo;
-    public Servo claw2GrabServo;
     public Servo upAndDownServo; // Added servo for up and down movement
 
-
+    // Odometry Components
+    public I2cDeviceSynch odometryDevice;
 
     // Hardware Map
     private HardwareMap hardwareMap;
@@ -58,13 +59,15 @@ public class RobotHardware {
         // Grabber 2 Initialization
         slideLeftServo = hardwareMap.servo.get("slideLeftServo");
         slideRightServo = hardwareMap.servo.get("slideRightServo");
-        claw2RotationServo = hardwareMap.servo.get("claw2RotationServo");
-        claw2GrabServo = hardwareMap.servo.get("claw2GrabServo");
         upAndDownServo = hardwareMap.servo.get("upAndDownServo"); // New servo
-    }
 
-            // Touch Sensor Initialization
+        // Touch Sensor Initialization
         slideZeroSwitch = hardwareMap.touchSensor.get("slideZeroSwitch");
+
+        // Odometry Initialization
+        odometryDevice = hardwareMap.get(I2cDeviceSynch.class, "odometryDevice");
+        odometryDevice.setI2cAddress(I2cAddr.create8bit(0x3C)); // Example I2C address, adjust as needed
+        odometryDevice.engage();
     }
 
     public boolean isSlideAtZero() {

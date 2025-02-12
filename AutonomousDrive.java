@@ -2,59 +2,40 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-// import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
+import com.qualcomm.robotcore.hardware.I2cAddr;
 
-@Autonomous(name = "Autonomous Drive", group = "Autonomous")
+@Autonomous(name = "Autonomous Drive with Pinpoint Odometry", group = "Autonomous")
 public class AutonomousDrive extends LinearOpMode {
 
     private RobotHardware robot;
-    private final double TICKS_PER_INCH = 1059.4; // Adjusted for updated specs
+    private I2cDeviceSynch odometryDevice;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        // Initialize RobotHardware
         robot = new RobotHardware(hardwareMap);
 
-        // Reset encoders and set to RUN_USING_ENCODER mode
-        resetEncoders();
-        setRunModeUsingEncoders();
+        // Initialize the odometry device
+        odometryDevice = hardwareMap.get(I2cDeviceSynch.class, "odometryDevice");
+        odometryDevice.setI2cAddress(I2cAddr.create8bit(0x3C)); // Example I2C address, adjust as needed
+        odometryDevice.engage();
 
         telemetry.addLine("Ready for start");
         telemetry.update();
 
-        // Wait for the game to start
         waitForStart();
 
-        // Execute movements
-        driveForward(12);    // Drive forward 1'
-        strafeRight(25);     // Strafe right 2' 1"
-        driveForward(39);    // Drive forward 3' 3"
-        strafeRight(10);     // Strafe right 10"
-        driveBackward(53);   // Backward 4' 5"
-        driveForward(53);    // Forward 4' 5"
-        strafeRight(9);      // Strafe right 9"
-        driveBackward(53);   // Backward 4' 5"
-        driveForward(53);    // Forward 4' 5"
-        strafeRight(7);      // Strafe right 7"
-        driveBackward(53);   // Backward 4' 5"
+        // Autonomous movements
+        driveForward(12); // Drive forward 1 foot
+        strafeRight(36);  // Strafe right 3 feet
+        driveForward(24); // Drive forward 2 feet
+        driveBackward(36); // Drive backward 3 feet
+        driveForward(36); // Drive forward 3 feet
+        strafeRight(6);   // Strafe right 6 inches
+        driveForward(36); // Drive forward 3 feet
 
         telemetry.addLine("Autonomous complete!");
         telemetry.update();
-    }
-
-    private void resetEncoders() {
-        robot.frontLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.frontRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.rearLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.rearRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    }
-
-    private void setRunModeUsingEncoders() {
-        robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.rearLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.rearRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     private void driveForward(double inches) {
@@ -67,10 +48,6 @@ public class AutonomousDrive extends LinearOpMode {
 
     private void strafeRight(double inches) {
         moveRobot(inches, -inches, -inches, inches);
-    }
-
-    private void strafeLeft(double inches) {
-        moveRobot(-inches, inches, inches, -inches);
     }
 
     private void moveRobot(double flInches, double frInches, double rlInches, double rrInches) {
@@ -116,5 +93,12 @@ public class AutonomousDrive extends LinearOpMode {
         robot.frontRightDrive.setPower(0);
         robot.rearLeftDrive.setPower(0);
         robot.rearRightDrive.setPower(0);
+    }
+
+    private void setRunModeUsingEncoders() {
+        robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.rearLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.rearRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 }

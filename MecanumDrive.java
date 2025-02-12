@@ -2,11 +2,14 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
+import com.qualcomm.robotcore.hardware.I2cAddr;
 
 @TeleOp(name = "Mecanum Drive with Reassigned Grabber Controls", group = "TeleOp")
 public class MecanumDrive extends LinearOpMode {
 
     private RobotHardware robot;
+    private I2cDeviceSynch odometryDevice;
     private boolean upAndDownState = false; // Tracks toggle state for upAndDownServo
     private boolean previousBState = false; // Tracks the previous state of the B button
     private boolean claw2GrabState = false; // Tracks the toggle state for Claw2 Grab Servo
@@ -15,6 +18,11 @@ public class MecanumDrive extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         robot = new RobotHardware(hardwareMap);
+
+        // Initialize the odometry device
+        odometryDevice = hardwareMap.get(I2cDeviceSynch.class, "odometryDevice");
+        odometryDevice.setI2cAddress(I2cAddr.create8bit(0x3C)); // Example I2C address, adjust as needed
+        odometryDevice.engage();
 
         telemetry.addLine("Ready for start");
         telemetry.update();
@@ -65,18 +73,6 @@ public class MecanumDrive extends LinearOpMode {
             robot.slideLeftServo.setPosition(0.5 + slidePower / 2); // Slide Left Servo
             robot.slideRightServo.setPosition(0.5 - slidePower / 2); // Slide Right Servo
 
-            double claw2Rotation = gamepad2.right_stick_x;
-            if (claw2Rotation != 0) {
-                robot.claw2RotationServo.setPosition(0.5 + (claw2Rotation / 2)); // Adjust Claw2 Rotation
-            }
-
-            // Claw2 Grab Toggle using A Button
-            if (gamepad2.a && !previousAState) {
-                claw2GrabState = !claw2GrabState;
-                robot.claw2GrabServo.setPosition(claw2GrabState ? 1.0 : 0.0);
-            }
-            previousAState = gamepad2.a;
-
             // UpAndDownServo Toggle using B Button
             if (gamepad2.b && !previousBState) {
                 upAndDownState = !upAndDownState;
@@ -85,10 +81,8 @@ public class MecanumDrive extends LinearOpMode {
             previousBState = gamepad2.b;
 
             // Telemetry for Debugging
-            telemetry.addData("Claw2 Grab State", claw2GrabState ? "Closed" : "Open");
             telemetry.addData("UpAndDownServo State", upAndDownState ? "Up" : "Down");
             telemetry.addData("Slide Power", slidePower);
-            telemetry.addData("Claw2 Rotation", claw2Rotation);
             telemetry.update();
         }
     }
